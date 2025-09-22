@@ -1,4 +1,4 @@
-import { ModalView } from './modalVIew';
+import { ModalView } from '../abstractions/modalView';
 
 const selectors = {
 	template: 'basket',
@@ -13,33 +13,33 @@ const selectors = {
 };
 
 export class BasketModalView extends ModalView {
-	render(cart: ICart) {
-		const basket = this.cloneTemplate<HTMLDivElement>(selectors.template);
-		const list = basket.querySelector(selectors.basketList)!;
+	render(basket: IBasket) {
+		const basketElement = this.cloneTemplate<HTMLDivElement>(selectors.template);
+		const list = basketElement.querySelector(selectors.basketList)!;
 		list.innerHTML = '';
 
-		basket.querySelector(
+		basketElement.querySelector(
 			selectors.basketPrice
-		)!.textContent = `${cart.total} синапсов`;
+		)!.textContent = `${basket.total} синапсов`;
 
-		const orderBtn = basket.querySelector(
+		const orderBtn = basketElement.querySelector(
 			selectors.orderButton
 		) as HTMLButtonElement;
 		if (orderBtn) {
 			orderBtn.addEventListener('click', () => {
-				this.events.emit('order:open', { total: cart.total });
+				this.events.emit('order:open', { total: basket.total });
 			});
 		}
 
-		if (cart.products.length === 0) {
-			const cartIsEmptyElement = document.createElement('span');
-			cartIsEmptyElement.textContent = 'Корзина пуста';
-			cartIsEmptyElement.classList.add('basket_empty');
+		if (basket.products.length === 0) {
+			const basketIsEmptyElement = document.createElement('span');
+			basketIsEmptyElement.textContent = 'Корзина пуста';
+			basketIsEmptyElement.classList.add('basket_empty');
             orderBtn.disabled = true;
-			list.append(cartIsEmptyElement);
+			list.append(basketIsEmptyElement);
 		}
 
-		cart.products.forEach((product, index) => {
+		basket.products.forEach((product, index) => {
 			const item = this.cloneTemplate<HTMLLIElement>(
 				selectors.templateCardBasket
 			);
@@ -57,9 +57,9 @@ export class BasketModalView extends ModalView {
 			) as HTMLButtonElement;
 			if (deleteBtn) {
 				deleteBtn.addEventListener('click', () => {
-					this.events.emit('product:removeFromCart', {
+					this.events.emit('product:removeFromBasket', {
 						id: product.id,
-						fromCart: true,
+						fromBasket: true,
 					});
 				});
 			}
@@ -67,6 +67,6 @@ export class BasketModalView extends ModalView {
 			list.append(item);
 		});
 
-		this.showModal(basket);
+		this.showModal(basketElement);
 	}
 }

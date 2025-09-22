@@ -1,6 +1,5 @@
-import { BaseView } from './baseVIew';
-import { IEvents } from '../base/events';
-import { ensureElement } from '../../utils/utils';
+import { BaseView } from '../abstractions/baseVIew';
+import { IEvents } from '../../base/events';
 
 const selectors = {
     button: '.header__basket',
@@ -13,10 +12,10 @@ export class HeaderBasketView extends BaseView {
 
 	constructor(events: IEvents) {
 		super(events);
-		this.button = ensureElement(selectors.button);
-        this.counter = ensureElement(selectors.counter);
+		this.button = this.ensureElement(selectors.button);
+        this.counter = this.ensureElement(selectors.counter);
 		this.button.addEventListener('click', () => {
-			this.events.emit('cart:open');
+			this.events.emit('basket:open');
 		});
 	}
 

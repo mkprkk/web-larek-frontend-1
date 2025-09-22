@@ -1,4 +1,4 @@
-import { ModalView } from './modalVIew';
+import { FormView } from '../../abstractions/formView';
 
 const selectors = {
 	template: 'success',
@@ -6,7 +6,7 @@ const selectors = {
 	closeButton: '.order-success__close',
 };
 
-export class SuccessModalView extends ModalView {
+export class SuccessModalView extends FormView {
 	render(total: number) {
 		const success = this.cloneTemplate<HTMLDivElement>(selectors.template);
 		success.querySelector(

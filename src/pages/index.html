@@ -260,9 +260,25 @@
 					<div class="order__field">
 						<h2 class="modal__title">Способ оплаты</h2>
 						<div class="order__buttons">
-							<input class="button_alt-radio" name="paymentType" type="radio" id="online" value="online" />
+							<input
+								class="button_alt-radio"
+								name="payment"
+								type="radio"
+								id="online"
+								value="online"
+								data-error-message="Необходимо выбрать способ оплаты"
+								required
+							/>
 							<label class="button_alt" for="online">Онлайн</label>
-							<input class="button_alt-radio" name="paymentType" type="radio" id="cash" value="cash" />
+							<input
+								class="button_alt-radio"
+								name="payment"
+								type="radio"
+								id="cash"
+								value="cash"
+								data-error-message="Необходимо выбрать способ оплаты"
+								required
+							/>
 							<label class="button button_alt" for="cash">При получении</label>
 						</div>
 					</div>
@@ -273,6 +289,9 @@
 							class="form__input"
 							type="text"
 							placeholder="Введите адрес"
+							pattern=".{5,}"
+							data-error-message="Необходимо указать адрес"
+							required
 						/>
 					</label>
 				</div>
@@ -293,8 +312,11 @@
 						<input
 							name="email"
 							class="form__input"
-							type="text"
+							type="email"
 							placeholder="Введите Email"
+							pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+							required
+							data-error-message="Необходимо указать E-mail"
 						/>
 					</label>
 					<label class="order__field">
@@ -304,11 +326,16 @@
 							class="form__input"
 							type="text"
 							placeholder="+7 ("
+							pattern="\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}"
+							required
+							data-error-message="Необходимо указать номер телефона"
 						/>
 					</label>
 				</div>
 				<div class="modal__actions">
-					<button type="submit" disabled class="button">Оплатить</button>
+					<button type="button" disabled class="button order__button">
+						Оплатить
+					</button>
 					<span class="form__errors"></span>
 				</div>
 			</form>

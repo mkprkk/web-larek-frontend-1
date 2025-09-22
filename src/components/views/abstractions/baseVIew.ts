@@ -1,5 +1,5 @@
-import { IEvents } from "../base/events";
-import { cloneTemplate, ensureElement } from "../../utils/utils";
+import { IEvents } from "../../base/events";
+import { cloneTemplate, ensureElement } from "../../../utils/utils";
 
 export abstract class BaseView {
     protected events: IEvents;

@@ -3,22 +3,28 @@ import './types/index.ts';
 import { Api } from './components/base/api';
 import { API_URL, API_PATHS } from './utils/constants';
 import { EventEmitter } from './components/base/events';
-import { Cart } from './components/models/cart';
+import { Basket } from './components/models/basket';
 import { OrderForm } from './components/models/orderForm';
-import { GalleryView } from './components/views/galleryView';
-import { ProductModalView } from './components/views/productModalView';
-import { BasketModalView } from './components/views/basketModalView';
-import { OrderModalView } from './components/views/orderModalView';
-import { ContactsModalView } from './components/views/contactsModalView';
-import { SuccessModalView } from './components/views/successModalView';
-import { HeaderBasketView } from './components/views/headerBasketVIew';
+import { GalleryView } from './components/views/mainPage/galleryView';
+import { ProductModalView } from './components/views/modals/productModalView';
+import { BasketModalView } from './components/views/modals/basketModalView';
+import { OrderModalView } from './components/views/modals/form/orderModalView';
+import { ContactsModalView } from './components/views/modals/form/contactsModalView';
+import { SuccessModalView } from './components/views/modals/form/successModalView';
+import { HeaderBasketView } from './components/views/mainPage/headerBasketVIew';
 import { Product } from './components/models/product';
 
+/**
+ * Главный класс приложения, управляющий всеми компонентами
+ * Координирует взаимодействие между моделями, представлениями и API
+ */
 class AppController {
 	private events: EventEmitter;
 	private api: Api;
-	private cart: Cart;
+	private basket: Basket;
 	private orderForm: OrderForm;
+
+	// Представления (Views)
 	private galleryView: GalleryView;
 	private productModalView: ProductModalView;
 	private basketModalView: BasketModalView;
@@ -28,9 +34,10 @@ class AppController {
 	private headerBasketView: HeaderBasketView;
 
 	constructor() {
+		// Инициализация основных компонентов
 		this.events = new EventEmitter();
 		this.api = new Api(API_URL);
-		this.cart = new Cart();
+		this.basket = new Basket();
 		this.orderForm = new OrderForm();
 
 		// Инициализация вьюх
@@ -49,134 +56,135 @@ class AppController {
 		this.loadProducts();
 	}
 
+	/**
+	 * Настройка обработчиков событий для координации взаимодействия между компонентами
+	 */
 	private setupEventListeners(): void {
 		// Открытие карточки продукта
 		this.events.on('product:clicked', ({ id }: { id: string }) => {
 			const product = Product.products.find((p) => p.id === id);
 			if (product) {
-				const inCart = this.cart.products.some((p) => p.id === id);
-				this.productModalView.render(product, inCart);
+				const inBasket = this.basket.products.some((p) => p.id === id);
+				this.productModalView.render(product, inBasket);
 			}
 		});
 
 		// Добавление в корзину
-		this.events.on('product:addToCart', ({ id }: { id: string }) => {
+		this.events.on('product:addToBasket', ({ id }: { id: string }) => {
 			const product = Product.products.find((p) => p.id === id);
 			if (product) {
-				product.addToCart();
+				product.addToBasket();
 				this.productModalView.render(product, true);
-				this.headerBasketView.render(this.cart.products.length.toString());
+				this.headerBasketView.render(this.basket.products.length.toString());
 			}
 		});
 
 		// Удаление из корзины
 		this.events.on(
-			'product:removeFromCart',
-			({ id, fromCart }: { id: string; fromCart: boolean }) => {
+			'product:removeFromBasket',
+			({ id, fromBasket }: { id: string; fromBasket: boolean }) => {
 				const product = Product.products.find((p) => p.id === id);
 				if (product) {
-					product.removeFromCart();
-					this.headerBasketView.render(this.cart.products.length.toString());
-					this.events.emit('cart:changed');
-					if (fromCart) return;
+					product.removeFromBasket();
+					this.headerBasketView.render(this.basket.products.length.toString());
+					this.events.emit('basket:changed');
+					if (fromBasket) return;
 					this.productModalView.render(product, false);
 				}
 			}
 		);
 
-		// Обновление корзины
-		this.events.on('cart:changed', () => {
-			this.basketModalView.render(this.cart);
+		// Обновление корзины при изменении ее содержимого
+		this.events.on('basket:changed', () => {
+			this.basketModalView.render(this.basket);
 		});
 
-		// Открытие корзины
-		this.events.on('cart:open', () => {
-			this.basketModalView.render(this.cart);
+		// Открытие модального окна корзины
+		this.events.on('basket:open', () => {
+			this.basketModalView.render(this.basket);
 		});
 
-		// Открытие формы заказа
+		// Открытие формы заказа (шаг 1 - способ оплаты и адрес)
 		this.events.on('order:open', () => {
 			this.orderModalView.render();
 		});
 
+		// Открытие формы контактов (шаг 2 - email и телефон)
+		this.events.on('contacts:open', () => {
+			this.contactsModalView.render();
+		});
+
 		// Выбор способа оплаты
-		this.events.on(
-			'order:paymentSelected',
-			({ payment }: { payment: PaymentType }) => {
-				this.orderForm.setPayment(payment);
-			}
-		);
+		this.events.on('order:payment', ({ payment }: { payment: PaymentType }) => {
+			this.orderForm.setPayment(payment);
+		});
 
-		// Отправка адреса
-		this.events.on('order:submit', ({ address }: { address: string }) => {
+		// Установка адреса доставки
+		this.events.on('order:address', ({ address }: { address: string }) => {
 			this.orderForm.setAddress(address);
-			const validation = this.orderForm.validate();
-			if (validation.valid) {
-				this.contactsModalView.render();
-			} else {
-				console.warn('Ошибка валидации адреса:', validation.errors);
-				this.events.emit('validation:failed', { errors: validation.errors });
-			}
 		});
 
-		// Отправка контактов
-		this.events.on(
-			'contacts:submit',
-			({ email, phone }: { email: string; phone: string }) => {
-				this.orderForm.setEmail(email);
-				this.orderForm.setPhone(phone);
-				const validation = this.orderForm.validate();
-				if (validation.valid) {
-					this.submitOrder();
-				} else {
-					console.warn('Ошибка валидации контактов:', validation.errors);
-					this.events.emit('validation:failed', { errors: validation.errors });
-				}
-			}
-		);
+		// Установка email
+		this.events.on('contacts:email', ({ email }: { email: string }) => {
+			this.orderForm.setEmail(email);
+		});
 
-		// Закрытие успешного заказа
+		// Установка телефона с очисткой и форматированием
+		this.events.on('contacts:phone', ({ phone }: { phone: string }) => {
+			const cleanPhone =
+				'+7' + phone.replace(/\D/g, '').replace(/^7/, '').replace(/^8/, '');
+			this.orderForm.setPhone(cleanPhone);
+		});
+
+		// Отправка формы заказа
+		this.events.on('contacts:submit', () => {
+			this.submitOrder();
+			this.events.emit('success:close');
+		});
+
+		// Закрытие модального окна успешного заказа и очистка корзины
 		this.events.on('success:close', () => {
-			this.cart.clear();
-			this.orderForm = new OrderForm(); // Сбрасываем форму
-			this.events.emit('cart:changed');
-		});
-
-		// Обработка ошибок валидации
-		this.events.on('validation:failed', ({ errors }: { errors: string[] }) => {
-			console.warn('Ошибки валидации:', errors);
-			// Можно добавить отображение ошибок во вьюхах
+			this.basket.clear();
+			this.headerBasketView.render(this.basket.products.length.toString());
 		});
 	}
 
+	/**
+	 * Загрузка списка продуктов с сервера
+	 */
 	private loadProducts(): void {
 		this.api
 			.get(API_PATHS.PRODUCTS)
 			.then((response: IProductsResponse) => {
+				// Создание экземпляров Product для каждого полученного товара
 				response.items.forEach((item: IProduct) => {
-					new Product(item, this.cart);
+					new Product(item, this.basket);
 				});
+				// Отображение галереи товаров
 				this.galleryView.render(Product.products);
 			})
-			.catch((error) => {
+			.catch((error: IErrorResponse) => {
 				console.error('Ошибка загрузки продуктов:', error);
 			});
 	}
 
+	/**
+	 * Отправка заказа на сервер
+	 */
 	private submitOrder(): void {
-		const orderData = this.orderForm.prepareForApi(this.cart);
+		// Подготовка данных заказа для отправки
+		const orderData = this.orderForm.prepareForApi(this.basket);
 		this.api
 			.post(API_PATHS.ORDER, orderData)
 			.then((response: IOrderSuccessResponse) => {
+				// Отображение окна успешного заказа с общей суммой
 				this.successModalView.render(response.total);
 			})
-			.catch((error) => {
+			.catch((error: IErrorResponse) => {
 				console.error('Ошибка отправки заказа:', error);
-				this.events.emit('validation:failed', {
-					errors: ['Ошибка отправки заказа'],
-				});
 			});
 	}
 }
 
+// Создание и запуск приложения
 const app = new AppController();

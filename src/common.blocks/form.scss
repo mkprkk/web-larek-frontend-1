@@ -25,10 +25,10 @@
       outline-style: solid;
     }
 
-    &:invalid {
-      border-color: $error;
-      outline-color: $error;
-    }
+    // &:invalid {
+    //   border-color: $error;
+    //   outline-color: $error;
+    // }
 
     &::placeholder {
       color: lighten($primaryLight, 23%);

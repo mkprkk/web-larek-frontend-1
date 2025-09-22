@@ -8,8 +8,8 @@ interface IProduct {
 }
 
 interface IProductInstance extends IProduct {
-	addToCart: () => void;
-	removeFromCart: () => void;
+	addToBasket: () => void;
+	removeFromBasket: () => void;
 }
 
 interface IProductsResponse {
@@ -17,24 +17,13 @@ interface IProductsResponse {
 	total: number;
 }
 
-interface ICart {
+interface IBasket {
 	products: IProduct[];
 	total: number;
 	addProduct: (product: IProduct) => void;
 	removeProduct: (productId: string) => void;
 	calculateTotal: () => void;
 	clear: () => void;
-}
-
-interface IProductResponse extends IProduct {}
-
-interface IOrderDataAPI {
-	payment: PaymentType;
-	email: string;
-	phone: string;
-	address: string;
-	total: number;
-	items: string[];
 }
 
 interface IOrderData {
@@ -44,17 +33,20 @@ interface IOrderData {
 	address?: string;
 }
 
+interface IOrderDataAPI extends IOrderData {
+	total: number;
+	items: string[];
+}
+
 interface IOrderSuccessResponse {
 	id: string;
 	total: number;
 }
 
-// Ответ с ошибкой
 interface IErrorResponse {
 	error: string;
 }
 
-// Категории продуктов
 type ProductCategory =
 	| 'софт-скил'
 	| 'другое'
@@ -62,33 +54,8 @@ type ProductCategory =
 	| 'кнопка'
 	| 'хард-скил';
 
-// Типы оплаты
 type PaymentType = string;
 
-// Тип для ответа продукта
-type ProductResponse = IProductResponse | IErrorResponse;
-
-// Тип для ответа списка продуктов
-type ProductsResponse = IProductsResponse | IErrorResponse;
-
-// Тип для ответа заказа
-type OrderResponse = IOrderSuccessResponse | IErrorResponse;
-
-// Для обработки null цен
-type ProductWithPrice = IProduct & { price: number };
-
-// Фильтр для продуктов с ценой
-function hasPrice(product: IProduct): product is ProductWithPrice {
-	return product.price !== null;
-}
-
-// Тип для ошибок API
-interface ApiError extends Error {
-	status?: number;
-	code?: string;
-}
-
-interface IValidationResult {
-  valid: boolean;
-  errors: string[];
+interface iSelectors {
+	[key: string]: string | iSelectors;
 }

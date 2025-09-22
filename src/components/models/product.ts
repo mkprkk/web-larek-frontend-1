@@ -1,4 +1,4 @@
-import { Cart } from "./cart";
+import { Basket } from "./basket";
 import { CDN_URL } from "../../utils/constants";
 
 export class Product implements IProductInstance {
@@ -11,7 +11,7 @@ export class Product implements IProductInstance {
     category: ProductCategory;
     price: number | null;
 
-    constructor(productData: IProduct, private cart: Cart) {
+    constructor(productData: IProduct, private basket: Basket) {
         this.id = productData.id;
         this.description = productData.description;
         this.image = `${CDN_URL}/${productData.image}`;
@@ -21,12 +21,12 @@ export class Product implements IProductInstance {
         Product.products.push(this);
     }
 
-    addToCart(): void {
-        this.cart.addProduct(this);
+    addToBasket(): void {
+        this.basket.addProduct(this);
     }
 
-    removeFromCart(): void {
-        this.cart.removeProduct(this.id);
+    removeFromBasket(): void {
+        this.basket.removeProduct(this.id);
     }
 
     get hasPrice(): boolean {

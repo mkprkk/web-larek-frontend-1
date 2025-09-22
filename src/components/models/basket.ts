@@ -1,4 +1,4 @@
-export class Cart implements ICart {
+export class Basket implements IBasket {
     products: IProduct[] = [];
     total: number = 0;
 

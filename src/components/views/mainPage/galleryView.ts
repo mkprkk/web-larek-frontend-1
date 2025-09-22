@@ -1,6 +1,5 @@
-import { BaseView } from './baseVIew';
-import { IEvents } from '../base/events';
-import { ensureElement } from '../../utils/utils';
+import { BaseView } from '../abstractions/baseVIew';
+import { IEvents } from '../../base/events';
 
 const selectors = {
 	template: 'card-catalog',
@@ -16,7 +15,7 @@ export class GalleryView extends BaseView {
 
 	constructor(events: IEvents) {
 		super(events);
-		this.container = ensureElement(selectors.container);
+		this.container = this.ensureElement(selectors.container);
 	}
 
 	render(products: IProduct[]) {
@@ -28,32 +27,35 @@ export class GalleryView extends BaseView {
 			card.querySelector(selectors.price)!.textContent = product.price
 				? `${product.price} синапсов`
 				: 'Бесценно';
+
+			(card.querySelector(selectors.image) as HTMLImageElement).src =
+				product.image;
+
+			card.dataset.id = product.id;
+
 			const categoryElement = card.querySelector(
 				selectors.category
 			) as HTMLSpanElement;
+
 			categoryElement!.textContent = product.category;
-			
+
 			switch (product.category) {
 				case 'софт-скил':
-                    categoryElement.classList.add('card__category_soft');
+					categoryElement.classList.add('card__category_soft');
 					break;
 				case 'другое':
-                    categoryElement.classList.add('card__category_other');
+					categoryElement.classList.add('card__category_other');
 					break;
 				case 'дополнительное':
-                    categoryElement.classList.add('card__category_additional');
+					categoryElement.classList.add('card__category_additional');
 					break;
 				case 'кнопка':
-                    categoryElement.classList.add('card__category_button');
+					categoryElement.classList.add('card__category_button');
 					break;
 				case 'хард-скил':
-                    categoryElement.classList.add('card__category_hard');
+					categoryElement.classList.add('card__category_hard');
 					break;
 			}
-			
-			(card.querySelector(selectors.image) as HTMLImageElement).src =
-				product.image;
-			card.dataset.id = product.id;
 
 			card.addEventListener('click', () => {
 				this.events.emit('product:clicked', { id: product.id });

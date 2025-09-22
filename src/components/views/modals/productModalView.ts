@@ -1,4 +1,4 @@
-import { ModalView } from './modalVIew';
+import { ModalView } from '../abstractions/modalView';
 
 const selectors = {
 	template: 'card-preview',
@@ -11,15 +11,21 @@ const selectors = {
 };
 
 export class ProductModalView extends ModalView {
-	render(product: IProduct, inCart: boolean) {
+	render(product: IProduct, inBasket: boolean) {
 		const card = this.cloneTemplate<HTMLDivElement>(selectors.template);
 
 		card.querySelector(selectors.title)!.textContent = product.title;
 		card.querySelector(selectors.text)!.textContent = product.description;
-		card.querySelector(selectors.category)!.textContent = product.category;
+		card.querySelector(selectors.price)!.textContent = product.price
+			? `${product.price} синапсов`
+			: 'Бесценно';
+		(card.querySelector(selectors.image) as HTMLImageElement)!.src =
+			product.image;
+
 		const categoryElement = card.querySelector(
 			selectors.category
 		) as HTMLSpanElement;
+
 		categoryElement!.textContent = product.category;
 
 		switch (product.category) {
@@ -39,27 +45,23 @@ export class ProductModalView extends ModalView {
 				categoryElement.classList.add('card__category_hard');
 				break;
 		}
-		(card.querySelector(selectors.image) as HTMLImageElement)!.src =
-			product.image;
-		card.querySelector(selectors.price)!.textContent = product.price
-			? `${product.price} синапсов`
-			: 'Бесценно';
 
 		const btn = card.querySelector(selectors.button) as HTMLButtonElement;
 		if (product.price) {
-			btn.textContent = inCart ? 'Удалить из корзины' : 'В корзину';
+			btn.textContent = inBasket ? 'Удалить из корзины' : 'В корзину';
 		} else {
 			btn.textContent = 'Недоступно';
 			btn.disabled = true;
 		}
+
 		btn.addEventListener('click', () => {
 			this.events.emit(
-				inCart ? 'product:removeFromCart' : 'product:addToCart',
+				inBasket ? 'product:removeFromBasket' : 'product:addToBasket',
 				{
 					id: product.id,
 				}
 			);
-			if (inCart) {
+			if (inBasket) {
 				this.hideModal();
 			}
 		});
