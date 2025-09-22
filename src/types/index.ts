@@ -56,6 +56,3 @@ type ProductCategory =
 
 type PaymentType = string;
 
-interface iSelectors {
-	[key: string]: string | iSelectors;
-}
